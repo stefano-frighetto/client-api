@@ -7,7 +7,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 // Dependency Injection
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
