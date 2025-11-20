@@ -1,41 +1,53 @@
-# Compilación
-bin/
-obj/
-
-# Configuración del usuario
-*.user
+# ==========================
+# GENERAL
+# ==========================
+.git/
+.gitignore
+.DS_Store
+thumbs.db
+.vscode/
+.idea/
+*.swp
 *.suo
+*.user
 *.userosscache
 *.sln.docstates
-
-# Logs y archivos de depuración
-*.log
-*.tlog
-*.bak
-*.swp
-*.pdb
-
-# Configuración de Visual Studio
-.vscode/
 *.vsconfig
 .vs/
 
-# Paquetes NuGet
+# ==========================
+# BACKEND
+# ==========================
+bin/
+obj/
+publish/
+out/
+*.log
+*.tlog
+*.bak
+*.pdb
 packages/
 *.nupkg
-
-# Dependencias locales
+global.json
+.project.nuget.cache
 .env
 secrets.json
 appsettings.Development.json
-
-# Publicación y despliegue
-publish/
-out/
-
-# Archivos de lock y caché
-global.json
-.project.nuget.cache
-
-# SonarQube
 .sonarqube/
+
+# ==========================
+# FRONTEND
+# ==========================
+node_modules/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+.angular/
+.sass-cache/
+connect.lock
+coverage/
+lib/
+npm-debug.log
+yarn-error.log
+test-results/
