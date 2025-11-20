@@ -36,3 +36,6 @@ out/
 # Archivos de lock y caché
 global.json
 .project.nuget.cache
+
+# SonarQube
+.sonarqube/
