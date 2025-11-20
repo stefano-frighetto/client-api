@@ -123,5 +123,143 @@ namespace ClientApi.Tests
             Assert.IsType<NoContentResult>(result);
             Assert.Null(await dbContext.Clients.FindAsync(clientToDelete.ClientId));
         }
+
+        [Fact]
+        public async Task GetClient_ReturnsOk_WhenClientExists()
+        {
+            // Arrange
+            var dbContext = GetDatabaseContext();
+            var existingClient = new Client { FirstName = "Test", LastName = "Id", CorporateName = "T", CUIT = "20-11122233-4", Email = "id@test.com", CellPhone = "1111111111", Birthdate = DateTime.Now };
+            dbContext.Clients.Add(existingClient);
+            await dbContext.SaveChangesAsync();
+
+            var controller = new ClientsController(dbContext, new Mock<ILogger<ClientsController>>().Object);
+
+            // Act
+            var result = await controller.GetClient(existingClient.ClientId);
+
+            // Assert
+            var actionResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnedClient = Assert.IsType<Client>(actionResult.Value);
+            Assert.Equal(existingClient.ClientId, returnedClient.ClientId);
+        }
+
+        [Fact]
+        public async Task GetClient_ReturnsNotFound_WhenIdDoesNotExist()
+        {
+            // Arrange
+            var dbContext = GetDatabaseContext();
+            var controller = new ClientsController(dbContext, new Mock<ILogger<ClientsController>>().Object);
+
+            // Act
+            var result = await controller.GetClient(999);
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task CreateClient_ReturnsConflict_WhenCuitExists()
+        {
+            // Arrange
+            var dbContext = GetDatabaseContext();
+
+            dbContext.Clients.Add(new Client { FirstName = "A", LastName = "B", CorporateName = "C", CUIT = "20-12345678-9", Email = "a@test.com", CellPhone = "1111111111", Birthdate = DateTime.Now });
+            await dbContext.SaveChangesAsync();
+
+            var controller = new ClientsController(dbContext, new Mock<ILogger<ClientsController>>().Object);
+
+            var dtoConCuitDuplicado = new CreateClientDto
+            {
+                FirstName = "X",
+                LastName = "Y",
+                CorporateName = "Z",
+                CUIT = "20-12345678-9",
+                Email = "otro@test.com",
+                CellPhone = "2222222222",
+                Birthdate = DateTime.Now
+            };
+
+            // Act
+            var result = await controller.CreateClient(dtoConCuitDuplicado);
+
+            // Assert
+            var conflictResult = Assert.IsType<ConflictObjectResult>(result.Result);
+            Assert.Contains("20-12345678-9", conflictResult.Value?.ToString());
+        }
+
+        [Fact]
+        public async Task UpdateClient_ReturnsOk_WhenUpdateIsValid()
+        {
+            // Arrange
+            var dbContext = GetDatabaseContext();
+            var originalClient = new Client { FirstName = "Viejo", LastName = "Nombre", CorporateName = "Old Corp", CUIT = "20-11111111-1", Email = "old@test.com", CellPhone = "1111111111", Birthdate = DateTime.Now };
+            dbContext.Clients.Add(originalClient);
+            await dbContext.SaveChangesAsync();
+
+            var controller = new ClientsController(dbContext, new Mock<ILogger<ClientsController>>().Object);
+
+            originalClient.FirstName = "Nuevo Nombre";
+            originalClient.CorporateName = "New Corp";
+
+            // Act
+            var result = await controller.UpdateClient(originalClient.ClientId, originalClient);
+
+            // Assert
+            var actionResult = Assert.IsType<OkObjectResult>(result.Result);
+            var updatedClient = Assert.IsType<Client>(actionResult.Value);
+            Assert.Equal("Nuevo Nombre", updatedClient.FirstName);
+
+            var dbClient = await dbContext.Clients.FindAsync(originalClient.ClientId);
+            
+            Assert.NotNull(dbClient);
+            Assert.Equal("New Corp", dbClient.CorporateName);
+        }
+
+        [Fact]
+        public async Task UpdateClient_ReturnsBadRequest_WhenIdsDoNotMatch()
+        {
+            // Arrange
+            var dbContext = GetDatabaseContext();
+            var controller = new ClientsController(dbContext, new Mock<ILogger<ClientsController>>().Object);
+
+            var clientData = new Client { ClientId = 1, FirstName = "Test", LastName = "Test", CorporateName = "T", CUIT = "20-11111111-1", Email = "t@t.com", CellPhone = "111", Birthdate = DateTime.Now };
+
+            // Act
+            var result = await controller.UpdateClient(50, clientData);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task UpdateClient_ReturnsNotFound_WhenClientDoesNotExist()
+        {
+            // Arrange
+            var dbContext = GetDatabaseContext();
+            var controller = new ClientsController(dbContext, new Mock<ILogger<ClientsController>>().Object);
+
+            var clientData = new Client { ClientId = 99, FirstName = "Test", LastName = "Test", CorporateName = "T", CUIT = "20-11111111-1", Email = "t@t.com", CellPhone = "111", Birthdate = DateTime.Now };
+
+            // Act
+            var result = await controller.UpdateClient(99, clientData);
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task DeleteClient_ReturnsNotFound_WhenClientDoesNotExist()
+        {
+            // Arrange
+            var dbContext = GetDatabaseContext();
+            var controller = new ClientsController(dbContext, new Mock<ILogger<ClientsController>>().Object);
+
+            // Act
+            var result = await controller.DeleteClient(999);
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
     }
 }
