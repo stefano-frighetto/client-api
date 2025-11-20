@@ -1,5 +1,6 @@
 using ClientApi.Data;
 using ClientApi.Infrastructure;
+using ClientApi.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Reflection;
@@ -11,6 +12,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // Dependency Injection
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+builder.Services.AddScoped<IClientRepository, ClientRepository>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();

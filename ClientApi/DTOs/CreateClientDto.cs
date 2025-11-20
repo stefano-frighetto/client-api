@@ -5,17 +5,17 @@ namespace ClientApi.DTOs
     public class CreateClientDto
     {
         [Required]
-        public string FirstName { get; set; }
+        public required string FirstName { get; set; }
 
         [Required]
-        public string LastName { get; set; }
+        public required string LastName { get; set; }
 
         [Required]
-        public string CorporateName { get; set; }
+        public required string CorporateName { get; set; }
 
         [Required]
         [RegularExpression(@"^\d{2}-\d{8}-\d$", ErrorMessage = "Invalid CUIT. Must be XX-XXXXXXXX-X")]
-        public string CUIT { get; set; }
+        public required string CUIT { get; set; }
 
         [Required]
         [DataType(DataType.Date)]
@@ -23,10 +23,10 @@ namespace ClientApi.DTOs
 
         [Required]
         [RegularExpression(@"^\d{10}$", ErrorMessage = "Invalid phone number. Must be 10 consecutive numbers only.")]
-        public string CellPhone { get; set; }
+        public required string CellPhone { get; set; }
 
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public required string Email { get; set; }
     }
 }
