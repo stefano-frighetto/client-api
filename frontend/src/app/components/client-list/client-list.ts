@@ -9,6 +9,8 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { ClientService } from '../../services/client';
 import { Client } from '../../models/client.model';
+import { MatDialog } from '@angular/material/dialog';
+import { ClientForm } from '../client-form/client-form';
 
 @Component({
   selector: 'app-client-list',
@@ -34,6 +36,7 @@ import { Client } from '../../models/client.model';
 })
 export class ClientList implements OnInit {
   private clientService = inject(ClientService);
+  private dialog = inject(MatDialog);
 
   displayedColumns: string[] = ['id', 'firstName', 'lastName', 'actions'];
   
@@ -44,6 +47,20 @@ export class ClientList implements OnInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   ngOnInit(): void {
+    this.dataSource.filterPredicate = (data: Client, filter: string) => {
+      const searchStr = (data.firstName).toLowerCase();
+      const transformedFilter = filter.trim().toLowerCase();      
+      return searchStr.includes(transformedFilter);
+    };
+    this.dataSource.sortingDataAccessor = (item, property) => {
+      switch(property) {
+        case 'id': return item.clientId;
+        case 'firstName': return item.firstName;
+        case 'lastName': return item.lastName;
+        default: return (item as any)[property];
+      }
+    };
+
     this.loadClients();
   }
 
@@ -62,9 +79,44 @@ export class ClientList implements OnInit {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
+  createClient() {
+    const dialogRef = this.dialog.open(ClientForm, {
+      width: '500px',
+      data: null
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.clientService.create(result).subscribe({
+          next: () => {
+            console.log('Cliente creado con éxito');
+            this.loadClients();
+          },
+          error: (err) => console.error('Error al crear', err)
+        });
+      }
+    });
+  }
+
   editClient(client: Client, event: Event) {
     event.stopPropagation();
-    console.log('Editar', client);
+    
+    const dialogRef = this.dialog.open(ClientForm, {
+      width: '400px',
+      data: client
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.clientService.update(result.clientId, result).subscribe({
+          next: () => {
+            console.log('Cliente actualizado');
+            this.loadClients();
+          },
+          error: (err) => console.error('Error al actualizar', err)
+        });
+      }
+    });
   }
 
   deleteClient(id: number, event: Event) {

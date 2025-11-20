@@ -1,5 +1,11 @@
 <div class="dashboard-container">
-  
+  <div class="header-actions">
+    <h2>Dashboard Clientes</h2>
+    <button mat-flat-button color="primary" (click)="createClient()">
+      <mat-icon>add</mat-icon>
+      Nuevo Cliente
+    </button>
+  </div>
   <mat-form-field appearance="outline" class="search-bar">
     <mat-label>Buscar clientes</mat-label>
     <input matInput (keyup)="applyFilter($event)" placeholder="Ej. Juan Perez" #input>

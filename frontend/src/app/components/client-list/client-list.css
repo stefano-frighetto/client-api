@@ -56,3 +56,10 @@ tr.element-row:not(.expanded-row):active {
   gap: 16px;
   margin-top: 10px;
 }
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
