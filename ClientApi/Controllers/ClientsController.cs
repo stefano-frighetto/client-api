@@ -1,6 +1,7 @@
 ﻿using ClientApi.Data;
 using ClientApi.DTOs;
 using ClientApi.Models;
+using ClientApi.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,12 +11,12 @@ namespace ClientApi.Controllers
     [ApiController]
     public class ClientsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IClientRepository _repository;
         private readonly ILogger<ClientsController> _logger;
 
-        public ClientsController(ApplicationDbContext context, ILogger<ClientsController> logger)
+        public ClientsController(IClientRepository repository, ILogger<ClientsController> logger)
         {
-            _context = context;
+            _repository = repository;
             _logger = logger;
         }
 
@@ -29,7 +30,7 @@ namespace ClientApi.Controllers
         public async Task<ActionResult<IEnumerable<Client>>> GetClients()
         {
             _logger.LogInformation("Retrieving all clients from the database.");
-            var clients = await _context.Clients.ToListAsync();
+            var clients = await _repository.GetAllAsync();
             return Ok(clients);
         }
 
@@ -45,7 +46,7 @@ namespace ClientApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Client>> GetClient(int id)
         {
-            var client = await _context.Clients.FindAsync(id);
+            var client = await _repository.GetByIdAsync(id);
 
             if (client == null)
             {
@@ -79,9 +80,7 @@ namespace ClientApi.Controllers
 
             _logger.LogInformation("Searching clients with name containing: {Name}", name);
 
-            var clients = await _context.Clients
-                .FromSqlRaw("SELECT * FROM search_clients(@p0)", name)
-                .ToListAsync();
+            var clients = (await _repository.SearchByNameAsync(name)).ToList();
 
             if (clients.Count == 0)
             {
@@ -110,14 +109,11 @@ namespace ClientApi.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<Client>> CreateClient(CreateClientDto clientDto)
         {
-            var existingConflict = await _context.Clients
-                .Where(c => c.CUIT == clientDto.CUIT || c.Email == clientDto.Email)
-                .Select(c => new { c.CUIT, c.Email })
-                .FirstOrDefaultAsync();
+            var existingConflict = await _repository.GetConflictAsync(clientDto.CUIT, clientDto.Email);
 
             if (existingConflict != null)
             {
-                string msg = $"There is already a registered customer with the field {(existingConflict.CUIT == clientDto.CUIT ? $"CUIT = {clientDto.CUIT}" : $"email = {clientDto.Email}")}";
+                string msg = $"There is already a registered client with the field {(existingConflict.CUIT == clientDto.CUIT ? $"CUIT = {clientDto.CUIT}" : $"email = {clientDto.Email}")}";
                 _logger.LogWarning("Conflict when creating client: {Message}", msg);
                 return Conflict(msg);
             }
@@ -133,8 +129,7 @@ namespace ClientApi.Controllers
                 Email = clientDto.Email
             };
 
-            _context.Clients.Add(newClient);
-            await _context.SaveChangesAsync();
+            await _repository.AddAsync(newClient);
 
             _logger.LogInformation("Created new client with Id {ClientId}", newClient.ClientId);
 
@@ -161,7 +156,7 @@ namespace ClientApi.Controllers
                 return BadRequest("Id in the URL doesn't match the Id in the client data");
             }
 
-            var existingClient = await _context.Clients.FindAsync(id);
+            var existingClient = await _repository.GetByIdAsync(id);
 
             if (existingClient == null)
             {
@@ -176,7 +171,7 @@ namespace ClientApi.Controllers
             existingClient.CellPhone = updatedClient.CellPhone;
             existingClient.Email = updatedClient.Email;
 
-            await _context.SaveChangesAsync();
+            await _repository.UpdateAsync(existingClient);
             _logger.LogInformation("Updated client with Id {ClientId}", id);
 
             return Ok(existingClient);
@@ -193,15 +188,14 @@ namespace ClientApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> DeleteClient(int id)
         {
-            var client = await _context.Clients.FindAsync(id);
+            var client = await _repository.GetByIdAsync(id);
 
             if (client == null)
             {
                 return NotFound("No client");
             }
 
-            _context.Clients.Remove(client);
-            await _context.SaveChangesAsync();
+            await _repository.DeleteAsync(client);
             _logger.LogInformation("Deleted client with Id {ClientId}", id);
 
             return NoContent();
