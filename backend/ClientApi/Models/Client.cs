@@ -6,7 +6,7 @@ namespace ClientApi.Models
     public class Client
     {
         [JsonRequired]
-        public int? ClientId { get; set; }
+        public int ClientId { get; set; }
 
         [Required]
         public required string FirstName { get; set; }
