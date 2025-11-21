@@ -1,6 +1,6 @@
 <div class="dashboard-container">
   <div class="header-actions">
-    <h2>Dashboard Clientes</h2>
+    <h2>Gestión de Clientes</h2>
     <button mat-flat-button color="primary" (click)="createClient()">
       <mat-icon>add</mat-icon>
       Nuevo Cliente
@@ -67,13 +67,13 @@
       <tr mat-row *matRowDef="let element; columns: displayedColumns;"
           class="element-row"
           [class.expanded-row]="expandedElement === element"
-          (click)="expandedElement = expandedElement === element ? null : element">
+          (click)="toggleRow(element)">
       </tr>
       
       <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
       
       <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" colspan="4">No se encontraron datos para "{{input.value}}"</td>
+        <td class="mat-cell" colspan="4">No se encontró un nombre para "{{input.value}}"</td>
       </tr>
     </table>
   </div>

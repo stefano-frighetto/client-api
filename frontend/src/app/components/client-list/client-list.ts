@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
@@ -37,6 +37,7 @@ import { ClientForm } from '../client-form/client-form';
 export class ClientList implements OnInit {
   private clientService = inject(ClientService);
   private dialog = inject(MatDialog);
+  private cd = inject(ChangeDetectorRef);
 
   displayedColumns: string[] = ['id', 'firstName', 'lastName', 'actions'];
   
@@ -124,5 +125,10 @@ export class ClientList implements OnInit {
     if(confirm('¿Estás seguro de borrar este cliente?')) {
       this.clientService.delete(id).subscribe(() => this.loadClients());
     }
+  }
+
+  toggleRow(element: Client) {
+    this.expandedElement = this.expandedElement === element ? null : element;
+    this.cd.detectChanges(); 
   }
 }
