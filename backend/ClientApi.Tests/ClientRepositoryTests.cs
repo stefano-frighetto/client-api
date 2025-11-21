@@ -7,7 +7,7 @@ namespace ClientApi.Tests
 {
     public class ClientRepositoryTests
     {
-        private ApplicationDbContext GetDbContext(string dbName)
+        private static ApplicationDbContext GetDbContext(string dbName)
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(databaseName: dbName)
@@ -18,7 +18,7 @@ namespace ClientApi.Tests
             return context;
         }
 
-        private Client GetTestClient(string email, string cuit)
+        private static Client GetTestClient(string email, string cuit)
         {
             return new Client { FirstName = "Test", LastName = "User", CorporateName = "Corp", CUIT = cuit, Email = email, CellPhone = "1111111111", Birthdate = DateTime.Now };
         }
