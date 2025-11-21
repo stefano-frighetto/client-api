@@ -98,6 +98,22 @@ namespace ClientApi.Tests
         }
 
         [Fact]
+        public async Task SearchClients_ReturnsAll_WhenNameIsNull()
+        {
+            // Arrange
+            var allClients = new List<Client> { new Client { ClientId = 1, FirstName = "A", LastName = "B", CorporateName = "C", CUIT = "20-1", Email = "e", CellPhone = "1", Birthdate = DateTime.Now } };
+            _mockRepo.Setup(repo => repo.GetAllAsync()).ReturnsAsync(allClients);
+
+            // Act
+            var result = await _controller.SearchClientsByName(null);
+
+            // Assert
+            var actionResult = Assert.IsType<OkObjectResult>(result.Result);
+            var list = Assert.IsType<List<Client>>(actionResult.Value);
+            Assert.Single(list);
+        }
+
+        [Fact]
         public async Task CreateClient_ReturnsCreated_WhenDataIsValid()
         {
             // Arrange
